@@ -16,7 +16,7 @@ def chat(chat_history, user_input):
         response += letter + ""
         yield chat_history + [(user_input, response)]
 
-checkpoint = "MBZUAI/LaMini-Flan-T5-783M"
+checkpoint = "MBZUAI/LaMini-Flan-T5-783M"   
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 base_model = AutoModelForSeq2SeqLM.from_pretrained(
     checkpoint,
