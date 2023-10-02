@@ -6,6 +6,8 @@ from langchain.llms import HuggingFacePipeline
 from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.chains import RetrievalQA
 import gradio as gr 
+from accelerate import init_empty_weights, infer_auto_device_map
+import requests
 
 def chat(chat_history, user_input):
 
@@ -20,13 +22,17 @@ def chat(chat_history, user_input):
         yield chat_history + [(user_input, response)]
 
 checkpoint = "MBZUAI/LaMini-Flan-T5-783M"   
-tokenizer = AutoTokenizer.from_pretrained(checkpoint,cache_dir='./model_config')
-base_model = AutoModelForSeq2SeqLM.from_pretrained(
+tokenizer = AutoTokenizer.from_pretrained(checkpoint,cache_dir='./model_config')      # 12 sec 
+
+with init_empty_weights():
+    base_model = AutoModelForSeq2SeqLM.from_pretrained(
     checkpoint,
-    device_map="auto",
+    # device_map="auto",
     offload_folder="offload",
     offload_state_dict = True,
-    torch_dtype = torch.float32)
+    torch_dtype = torch.float32)   # 30 sec
+
+device_map = infer_auto_device_map(base_model)
 
 # config = AutoConfig.from_pretrained('./config.json')
 # model_state_dict = torch.load('./pytorch_model.bin')
@@ -53,6 +59,7 @@ qa_chain = RetrievalQA.from_chain_type(llm=local_llm,
         retriever=db.as_retriever(search_type="similarity", search_kwargs={"k":2}),
         return_source_documents=True,
         )
+
 
 with gr.Blocks() as gradioUI:
     
