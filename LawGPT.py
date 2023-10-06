@@ -7,7 +7,6 @@ from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.chains import RetrievalQA
 import gradio as gr 
 from accelerate import init_empty_weights, infer_auto_device_map
-import requests
 
 def chat(chat_history, user_input):
 
@@ -24,15 +23,14 @@ def chat(chat_history, user_input):
 checkpoint = "MBZUAI/LaMini-Flan-T5-783M"   
 tokenizer = AutoTokenizer.from_pretrained(checkpoint,cache_dir='./model_config')      # 12 sec 
 
-with init_empty_weights():
-    base_model = AutoModelForSeq2SeqLM.from_pretrained(
-    checkpoint,
-    # device_map="auto",
-    offload_folder="offload",
-    offload_state_dict = True,
-    torch_dtype = torch.float32)   # 30 sec
+base_model = AutoModelForSeq2SeqLM.from_pretrained(
+checkpoint,
+device_map="auto",
+offload_folder="offload",
+offload_state_dict = True,
+torch_dtype = torch.float32)   # 30 sec
 
-device_map = infer_auto_device_map(base_model)
+# device_map = infer_auto_device_map(base_model)
 
 # config = AutoConfig.from_pretrained('./config.json')
 # model_state_dict = torch.load('./pytorch_model.bin')
